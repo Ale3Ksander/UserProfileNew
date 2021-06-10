@@ -4,11 +4,9 @@ namespace UserProfiles.Domain.Common.Entities
 {
     public abstract class Entity
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
-        //public Guid CreatedById { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        //public Guid? UpdatedById { get; set; }
         
         protected Entity()
         {

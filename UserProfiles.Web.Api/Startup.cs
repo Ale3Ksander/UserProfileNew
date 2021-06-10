@@ -14,6 +14,7 @@ using UserProfiles.Domain.Common.Data.DataContext;
 using UserProfiles.Domain.Data;
 using UserProfiles.Domain.UserProfiles.Data;
 using UserProfiles.Domain.UserProfiles.Services;
+using UserProfiles.Web.Api.Middleware;
 
 namespace UserProfiles.Web.Api
 {
@@ -39,6 +40,7 @@ namespace UserProfiles.Web.Api
             //Swagger
 
             //services.AddScoped<UnitOfWork<UserProfileDataContext>>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +61,10 @@ namespace UserProfiles.Web.Api
             {
                 endpoints.MapControllers();
             });
+
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+
+            //app.UseMvc();
         }
     }
 }

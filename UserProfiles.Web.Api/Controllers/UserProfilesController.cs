@@ -1,33 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using UserProfiles.Domain.Common.Data.DataContext;
+using UserProfiles.Domain.UserProfiles;
+using UserProfiles.Domain.UserProfiles.Dtos;
 using UserProfiles.Domain.UserProfiles.Services;
+using UserProfiles.Web.Api.Models;
 
 namespace UserProfiles.Web.Api.Controllers
 {
-    [Route("api/[controller]")]
+
     [ApiController]
     public class UserProfilesController : ControllerBase
     {
-        //private readonly UserProfileDataContext _context;
         private readonly IUserProfileService _userProfileService;
 
-        public UserProfilesController(/*UserProfileDataContext context,*/ IUserProfileService userProfileService)
+        public UserProfilesController(IUserProfileService userProfileService)
         {
-            //_context = context;
             _userProfileService = userProfileService;
         }
 
         [HttpGet]
+        [Route(Routes.UserProfilesList)]
         public IActionResult List()
         {
             var result = _userProfileService.List();
-            return Ok(result);
+            return Ok(new ApiResponse<IEnumerable<UserProfile>>(result));
         }
 
+        [HttpGet]
+        [Route(Routes.UserProfilesGet)]
+        public IActionResult Get(int id)
+        {
+            var result = _userProfileService.Get(id);
+            if (result == null)
+                return NotFound();
+            return Ok(new ApiResponse<UserProfile>(result));
+        }
+
+        [HttpPost]
+        [Route(Routes.UserProfilesCreate)]
+        public IActionResult Create([FromBody] UserProfileCreateDto model)
+        {
+             var result = _userProfileService.Create(model);
+            return Ok(new ApiResponse<UserProfile>(result));
+        }
+
+        [HttpPut]
+        [Route(Routes.UserProfilesUpdate)]
+        public IActionResult Update([FromBody] UserProfileUpdateDto model)
+        {
+            _userProfileService.Update(model);
+            return Ok(new ApiResponse());
+        }
+
+        [HttpDelete]
+        [Route(Routes.UserProfilesDelete)]
+        public IActionResult Delete(int id)
+        {
+            _userProfileService.Delete(id);
+            return Ok(new ApiResponse());
+        }
     }
 }

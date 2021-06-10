@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using UserProfiles.Domain.Common.Data;
 using UserProfiles.Domain.Common.Data.DataContext;
 using UserProfiles.Domain.Data;
+using UserProfiles.Domain.Exceptions;
 using UserProfiles.Domain.UserProfiles.Data;
+using UserProfiles.Domain.UserProfiles.Dtos;
 
 namespace UserProfiles.Domain.UserProfiles.Services
 {
@@ -30,23 +34,71 @@ namespace UserProfiles.Domain.UserProfiles.Services
         //}
         public IEnumerable<UserProfile> List()
         {
-            var users = _userProfileRepository.List();
-            return users.ToList();
+            var users = UserProfileDataStore.Current.UserProfiles;
+            return users;
         }
 
-        public void Create(UserProfile user)
+        public UserProfile Get(int id)
         {
-            throw new NotImplementedException();
+            var user = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x => x.Id == id);
+
+            return user;
         }
 
-        public void Update(UserProfile user)
+        public UserProfile Create(UserProfileCreateDto model)
         {
-            throw new NotImplementedException();
+            model = model ?? throw new ArgumentNullException(nameof(model));
+
+            var userExists = UserProfileDataStore.Current.UserProfiles.Any(x => x.FirstName == model.FirstName
+                                                                                        && x.LastName == model.LastName);
+            if (userExists)
+                throw new BusinessException(-1, "User Name And Last Name Should Be Unique");
+
+            var maxUserId = UserProfileDataStore.Current.UserProfiles.Max(x => x.Id);
+            var newUser = new UserProfile()
+            {
+                Id = ++maxUserId,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Age = model.Age,
+                PhoneNumber = model.PhoneNumber,
+                Email = model.Email,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            UserProfileDataStore.Current.UserProfiles.Add(newUser);
+            return newUser;
         }
 
-        public void Delete(Guid id)
+        public void Update(UserProfileUpdateDto model)
         {
-            throw new NotImplementedException();
+            model = model ?? throw new ArgumentNullException(nameof(model));
+
+            var userFromStore = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x =>x.Id == model.Id);
+            if (userFromStore != null)
+            {
+                var userExists = UserProfileDataStore.Current.UserProfiles.Any(x => x.FirstName == model.FirstName
+                                                                                        && x.LastName == model.LastName);
+                if(userExists)
+                    throw new BusinessException(-1, "User Name And Last Name Should Be Unique");
+
+                userFromStore.Id = model.Id;
+                userFromStore.FirstName = model.FirstName;
+                userFromStore.LastName = model.LastName;
+                userFromStore.Age = model.Age;
+                userFromStore.PhoneNumber = model.PhoneNumber;
+                userFromStore.Email = model.Email;
+                userFromStore.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        public void Delete(int id)
+        {
+            var userFromStore = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x => x.Id == id);
+            if (userFromStore == null)
+                throw new BusinessException(-1, "User Not Found");
+
+            UserProfileDataStore.Current.UserProfiles.Remove(userFromStore);
         }
     }
 }

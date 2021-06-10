@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using UserProfiles.Domain.UserProfiles.Dtos;
 
 namespace UserProfiles.Domain.UserProfiles.Services
 {
     public interface IUserProfileService
     {
         IEnumerable<UserProfile> List();
-        void Create(UserProfile user);
-        void Update(UserProfile user);
-        void Delete(Guid id);
+        UserProfile Get(int id);
+        UserProfile Create(UserProfileCreateDto model);
+        void Update(UserProfileUpdateDto model);
+        void Delete(int id);
     }
 }
