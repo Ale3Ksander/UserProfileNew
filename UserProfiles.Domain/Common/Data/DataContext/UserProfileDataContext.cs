@@ -1,30 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System;
 using UserProfiles.Domain.UserProfiles;
 using UserProfiles.Domain.UserProfiles.Data;
 
 namespace UserProfiles.Domain.Common.Data.DataContext
 {
-    public class UserProfileDataContext : DbContext
+    public class UserProfileDataContext : IdentityDbContext<User, Role, Guid>
     {
-        private readonly IConfiguration _configuration;
-        public UserProfileDataContext(IConfiguration configuration)
+        public UserProfileDataContext(DbContextOptions<UserProfileDataContext> options) : base(options)
         {
-            _configuration = configuration;
+            Database.EnsureCreated();
+
         }
-        //public UserProfileDataContext(DbContextOptions<UserProfileDataContext> options) : base(options)
-        //{
-
-        //}
-
         public DbSet<UserProfile> UserProfiles { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var connection = _configuration.GetConnectionString("DefaultConnection");
-            optionsBuilder.UseSqlServer(connection);
-            optionsBuilder.EnableSensitiveDataLogging(true);
-        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

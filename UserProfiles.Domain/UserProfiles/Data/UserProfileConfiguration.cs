@@ -1,9 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace UserProfiles.Domain.UserProfiles.Data
 {
@@ -19,8 +15,6 @@ namespace UserProfiles.Domain.UserProfiles.Data
             builder.Property(x => x.Age).IsRequired();
             builder.Property(x => x.PhoneNumber);
             builder.Property(x => x.Email);
-
         }
-    }
-    
+    }   
 }

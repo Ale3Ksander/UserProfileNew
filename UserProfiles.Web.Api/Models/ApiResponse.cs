@@ -1,5 +1,4 @@
-﻿
-namespace UserProfiles.Web.Api.Models
+﻿namespace UserProfiles.Web.Api.Models
 {
     public class ApiResponse
     {

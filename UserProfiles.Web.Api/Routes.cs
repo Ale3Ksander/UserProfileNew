@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace UserProfiles.Web.Api
+﻿namespace UserProfiles.Web.Api
 {
     public static class Routes
     {

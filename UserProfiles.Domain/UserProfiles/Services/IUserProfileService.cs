@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UserProfiles.Domain.UserProfiles.Dtos;
 
 namespace UserProfiles.Domain.UserProfiles.Services
@@ -6,9 +7,9 @@ namespace UserProfiles.Domain.UserProfiles.Services
     public interface IUserProfileService
     {
         IEnumerable<UserProfile> List();
-        UserProfile Get(int id);
+        UserProfile Get(Guid id);
         UserProfile Create(UserProfileCreateDto model);
         void Update(UserProfileUpdateDto model);
-        void Delete(int id);
+        void Delete(Guid id);
     }
 }

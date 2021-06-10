@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using UserProfiles.Domain.Common.Data.DataContext;
+using UserProfiles.Domain.Data;
 using UserProfiles.Domain.UserProfiles;
 using UserProfiles.Domain.UserProfiles.Dtos;
 using UserProfiles.Domain.UserProfiles.Services;
@@ -7,13 +10,12 @@ using UserProfiles.Web.Api.Models;
 
 namespace UserProfiles.Web.Api.Controllers
 {
-
     [ApiController]
-    public class UserProfilesController : ControllerBase
+    public class UserProfilesController : BaseController
     {
         private readonly IUserProfileService _userProfileService;
 
-        public UserProfilesController(IUserProfileService userProfileService)
+        public UserProfilesController(UnitOfWork<UserProfileDataContext> unitOfWork, IUserProfileService userProfileService) : base(unitOfWork)
         {
             _userProfileService = userProfileService;
         }
@@ -28,7 +30,7 @@ namespace UserProfiles.Web.Api.Controllers
 
         [HttpGet]
         [Route(Routes.UserProfilesGet)]
-        public IActionResult Get(int id)
+        public IActionResult Get(Guid id)
         {
             var result = _userProfileService.Get(id);
             if (result == null)
@@ -54,7 +56,7 @@ namespace UserProfiles.Web.Api.Controllers
 
         [HttpDelete]
         [Route(Routes.UserProfilesDelete)]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(Guid id)
         {
             _userProfileService.Delete(id);
             return Ok(new ApiResponse());

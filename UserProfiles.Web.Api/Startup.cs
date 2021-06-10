@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using UserProfiles.Domain.Common.Data;
 using UserProfiles.Domain.Common.Data.DataContext;
+using UserProfiles.Domain.Common.Initializers;
 using UserProfiles.Domain.Data;
 using UserProfiles.Domain.UserProfiles.Data;
 using UserProfiles.Domain.UserProfiles.Services;
@@ -30,17 +27,30 @@ namespace UserProfiles.Web.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<UserProfileDataContext>();
-            services.AddTransient<IUserProfileRepository, UserProfileRepository>();
-
-            services.AddTransient<IUserProfileService, UserProfileService>();
+            services.AddDbContext<UserProfileDataContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddControllers();
 
-            //Swagger
+            services.AddIdentity<User, Role>(opts =>
+            {
+                opts.Password.RequiredLength = 8;
+                opts.Password.RequireNonAlphanumeric = true;
+                opts.Password.RequireLowercase = true;
+                opts.Password.RequireUppercase = true;
+                opts.Password.RequireDigit = true;
+                opts.SignIn.RequireConfirmedEmail = true;
+            }).AddEntityFrameworkStores<UserProfileDataContext>()
+                .AddDefaultTokenProviders();
 
-            //services.AddScoped<UnitOfWork<UserProfileDataContext>>();
-            
+            services.AddTransient<IUserProfileRepository, UserProfileRepository>();
+
+            services.AddScoped<UnitOfWork<UserProfileDataContext>>();
+
+            // Initializers
+            services.AddScoped<IDatabaseInitializer, ProfileDatabaseInitializer>();
+
+            services.AddTransient<IUserProfileService, UserProfileService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,7 +65,8 @@ namespace UserProfiles.Web.Api
 
             app.UseRouting();
 
-            //app.UseAuthorization();
+            app.UseAuthentication();    
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
@@ -63,8 +74,6 @@ namespace UserProfiles.Web.Api
             });
 
             app.UseMiddleware(typeof(ErrorHandlingMiddleware));
-
-            //app.UseMvc();
         }
     }
 }

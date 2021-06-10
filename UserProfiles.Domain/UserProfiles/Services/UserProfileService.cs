@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using UserProfiles.Domain.Common.Data;
 using UserProfiles.Domain.Common.Data.DataContext;
 using UserProfiles.Domain.Data;
 using UserProfiles.Domain.Exceptions;
@@ -14,33 +11,26 @@ namespace UserProfiles.Domain.UserProfiles.Services
 {
     public class UserProfileService : IUserProfileService
     {
-        //private readonly UnitOfWork<UserProfileDataContext> _unitOfWork;
-        private readonly UserProfileDataContext _dataContext;
+        private readonly UnitOfWork<UserProfileDataContext> _unitOfWork;
         private readonly IUserProfileRepository _userProfileRepository;
 
         public UserProfileService(
-            UserProfileDataContext dataContext,
+            UnitOfWork<UserProfileDataContext> unitOfWork,
             IUserProfileRepository userProfileRepository)
         {
-            _dataContext = dataContext;
+            _unitOfWork = unitOfWork;
             _userProfileRepository = userProfileRepository;
         }
-        //public UserProfileService(
-        //    UnitOfWork<UserProfileDataContext> unitOfWork,
-        //    IUserProfileRepository userProfileRepository)
-        //{
-        //    _unitOfWork = unitOfWork;
-        //    _userProfileRepository = userProfileRepository;
-        //}
+
         public IEnumerable<UserProfile> List()
         {
-            var users = UserProfileDataStore.Current.UserProfiles;
+            var users = _unitOfWork.Query<UserProfile>();
             return users;
         }
 
-        public UserProfile Get(int id)
+        public UserProfile Get(Guid id)
         {
-            var user = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x => x.Id == id);
+            var user = _unitOfWork.Query<UserProfile>().FirstOrDefault(x => x.Id == id);
 
             return user;
         }
@@ -49,15 +39,13 @@ namespace UserProfiles.Domain.UserProfiles.Services
         {
             model = model ?? throw new ArgumentNullException(nameof(model));
 
-            var userExists = UserProfileDataStore.Current.UserProfiles.Any(x => x.FirstName == model.FirstName
-                                                                                        && x.LastName == model.LastName);
+            var userExists = _unitOfWork.Query<UserProfile>().Any(x => x.FirstName == model.FirstName
+                                                                    && x.LastName == model.LastName);
             if (userExists)
                 throw new BusinessException(-1, "User Name And Last Name Should Be Unique");
 
-            var maxUserId = UserProfileDataStore.Current.UserProfiles.Max(x => x.Id);
             var newUser = new UserProfile()
             {
-                Id = ++maxUserId,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Age = model.Age,
@@ -66,7 +54,7 @@ namespace UserProfiles.Domain.UserProfiles.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            UserProfileDataStore.Current.UserProfiles.Add(newUser);
+            _userProfileRepository.Create(newUser);
             return newUser;
         }
 
@@ -74,15 +62,14 @@ namespace UserProfiles.Domain.UserProfiles.Services
         {
             model = model ?? throw new ArgumentNullException(nameof(model));
 
-            var userFromStore = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x =>x.Id == model.Id);
+            var userFromStore = _unitOfWork.Query<UserProfile>().FirstOrDefault(x => x.Id == model.Id);
             if (userFromStore != null)
             {
-                var userExists = UserProfileDataStore.Current.UserProfiles.Any(x => x.FirstName == model.FirstName
-                                                                                        && x.LastName == model.LastName);
-                if(userExists)
+                var userExists = _unitOfWork.Query<UserProfile>().Any(x => x.FirstName == model.FirstName
+                                                                && x.LastName == model.LastName);
+                if (userExists)
                     throw new BusinessException(-1, "User Name And Last Name Should Be Unique");
 
-                userFromStore.Id = model.Id;
                 userFromStore.FirstName = model.FirstName;
                 userFromStore.LastName = model.LastName;
                 userFromStore.Age = model.Age;
@@ -92,13 +79,13 @@ namespace UserProfiles.Domain.UserProfiles.Services
             }
         }
 
-        public void Delete(int id)
+        public void Delete(Guid id)
         {
-            var userFromStore = UserProfileDataStore.Current.UserProfiles.FirstOrDefault(x => x.Id == id);
+            var userFromStore = _unitOfWork.Query<UserProfile>().FirstOrDefault(x => x.Id == id);
             if (userFromStore == null)
                 throw new BusinessException(-1, "User Not Found");
 
-            UserProfileDataStore.Current.UserProfiles.Remove(userFromStore);
+            _userProfileRepository.Delete(userFromStore);
         }
     }
 }
